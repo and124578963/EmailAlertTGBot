@@ -4,8 +4,8 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>org.telegram</groupId>
-    <artifactId>gpb_alerts</artifactId>
+    <groupId>org.tgbots</groupId>
+    <artifactId>TelegramAlertBot</artifactId>
     <version>1.0</version>
 
     <properties>
@@ -90,7 +90,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>org.telegram.Main</mainClass>
+                            <mainClass>org.tgbot.Main</mainClass>
                         </manifest>
                     </archive>
                     <descriptorRefs>
@@ -129,7 +129,7 @@
                     <archive>
                         <manifest>
                             <addClasspath>true</addClasspath>
-                            <mainClass>org.telegram.Main</mainClass>
+                            <mainClass>org.tgbot.Main</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
