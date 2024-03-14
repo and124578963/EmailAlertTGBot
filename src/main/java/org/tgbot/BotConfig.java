@@ -22,6 +22,7 @@ public class BotConfig {
     private String helloMessage;
     private String goodbyeMessage;
     private String pythonBin;
+    private String pathToMailModule;
     private int maxAttemptsToSend;
     private List<String> assignPulls;
 

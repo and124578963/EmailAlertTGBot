@@ -11,11 +11,10 @@ import java.io.Serializable;
 
 @Data
 @FieldDefaults(level = AccessLevel.PRIVATE)
-@Document
+@Document(collection = "users")
 public class ChatUser implements Serializable {
     @Id
     String id;
-
     String name;
     String command;
 

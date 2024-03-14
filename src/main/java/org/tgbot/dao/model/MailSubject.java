@@ -1,6 +1,5 @@
 package org.tgbot.dao.model;
 
-import com.mongodb.lang.Nullable;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.experimental.FieldDefaults;
@@ -15,22 +14,28 @@ import java.util.List;
 
 @Data
 @FieldDefaults(level = AccessLevel.PRIVATE)
-@Document
+@Document(collection = "mails")
 public class MailSubject implements Serializable {
 
     @Id
     String id;
-    String topic;
+    String date;
+    String sender;
+    String folder;
+    String receiver;
     String subject;
-    String text;
+    String body;
 
     @Field
     List<String> attachments = new ArrayList<>();
 
+    @Field(name="is_sent")
     boolean isSent;
+
+    @Field(name="enable_assigne")
     boolean enabledAssign;
 
-    @Nullable
-    String issueCode;
+    @Field(name="converted_to_image")
+    boolean converted_to_image;
 
 }

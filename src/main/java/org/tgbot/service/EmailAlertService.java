@@ -38,6 +38,7 @@ public class EmailAlertService {
     private BotConfig botConfig;
     @Autowired
     private EmailPythonAdapter emailPythonAdapter;
+
     @Autowired
     private void notifyUsersBotIsUp() throws TelegramApiException {
         List<Chat> listChat = chatDataService.getActivatedChats();
@@ -60,17 +61,18 @@ public class EmailAlertService {
                 log.info(String.format("Start processing email %s", mail.toString()));
 
                 for (Chat chat : listChat) {
-                    if (chat.getSubscribes().contains(mail.getTopic())) {
+                    if (chat.getSubscribes().contains(mail.getFolder())) {
+                        log.info(String.format("Sent to chat %s", chat));
                         sendImageAttachments(chat, mail);
                         sendTextMessage(chat, mail);
                         mailSubjectsDataService.setIsSent(mail);
                         sendFileAttachments(chat, mail);
-                    }}
+                    } }
 
             }
             attemptToSend = 1;
         }catch (Exception e){
-            System.out.printf("Attempt number %d failed.%n", attemptToSend);
+            log.info("Attempt number {} failed.", attemptToSend);
             e.printStackTrace();
             if (attemptToSend++ > botConfig.getMaxAttemptsToSend()) {
                 List<Chat> listChat = chatDataService.getActivatedChats();
@@ -88,13 +90,13 @@ public class EmailAlertService {
     }
 
     private void sendTextMessage(Chat chat, MailSubject mailSubject) throws TelegramApiException {
-        String text = mailSubject.getText();
+        String text = mailSubject.getBody();
         int maxLength = Math.min(text.length(), 3800);
         text = text.substring(0, maxLength);
-        if (! text.contains("Выгружено в изображение")){
-            String message = mailSubject.getIssueCode() + ": " + mailSubject.getSubject() + "\n\n" + text;
+        if (! mailSubject.isConverted_to_image()){
+            String message = mailSubject.getSubject() + "\n\n" + text;
             if (mailSubject.isEnabledAssign()) {
-                emailAlertBot.sendMessageWithKeyboard(chat.getTgChatId(), message , new AssignCommandKeyboard());
+                emailAlertBot.sendMessageWithKeyboard(chat.getTgChatId(), message , new AssignCommandKeyboard(botConfig.getAssignPulls()));
             } else {
                 emailAlertBot.sendMessage(chat.getTgChatId(), message);
             }
@@ -121,9 +123,9 @@ public class EmailAlertService {
         if (listAttachmentsPath.size() > 1) {
             int maxIndex = Math.min(listAttachmentsPath.size(), 10);
             emailAlertBot.sendMediaGroup(chat.getTgChatId(), listAttachmentsPath.subList(0, maxIndex),
-                    mailSubject.getIssueCode());
+                    mailSubject.getSubject());
         } else if (listAttachmentsPath.size() == 1) {
-            emailAlertBot.sendPhoto(chat.getTgChatId(), mailSubject.getIssueCode(), listAttachmentsPath.get(0));
+            emailAlertBot.sendPhoto(chat.getTgChatId(), mailSubject.getSubject(), listAttachmentsPath.get(0));
         }
     }
 
@@ -138,7 +140,7 @@ public class EmailAlertService {
             if (((width / height) < 20) && ((height / width) < 20) && (file.length() / (1024 * 1024) < 10)) {
                 return path;
             } else {
-                return "resources/badImage.png";
+                return "classpath:badImage.png";
             }
         } else {
             return null;

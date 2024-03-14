@@ -16,10 +16,9 @@ import java.nio.charset.StandardCharsets;
 public class EmailPythonAdapter {
     @Autowired
     private BotConfig botConfig;
-    private final String SCRIPT_PATH = "pythonMailModule/gmail_utils.py";
 
     public void run() throws IOException {
-        ProcessBuilder pb = new ProcessBuilder(botConfig.getPythonBin(), SCRIPT_PATH);
+        ProcessBuilder pb = new ProcessBuilder(botConfig.getPythonBin(), botConfig.getPathToMailModule());
         pb.redirectErrorStream(true);
         Process process = pb.start();
         StringBuilder textBuilder = new StringBuilder();

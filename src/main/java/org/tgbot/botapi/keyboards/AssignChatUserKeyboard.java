@@ -16,6 +16,7 @@ public class AssignChatUserKeyboard extends InlineKeyboardMarkup {
         InlineKeyboardButton buttonSelectedCommand = new InlineKeyboardButton();
         String backName = String.format("%s %s", Emojis.ARROW_BACK, command);
         buttonSelectedCommand.setText(backName);
+        buttonSelectedCommand.setCallbackData("__general__");
 
         List<List<InlineKeyboardButton>> rowList = new ArrayList<>();
         List<InlineKeyboardButton> keyboardButtonsRow1 = new ArrayList<>();
@@ -24,7 +25,6 @@ public class AssignChatUserKeyboard extends InlineKeyboardMarkup {
         chatUsers.removeIf(u -> !u.getCommand().equalsIgnoreCase(command));
 
         for (ChatUser user: chatUsers){
-            System.out.println(user.getId());
             InlineKeyboardButton buttonUser = new InlineKeyboardButton();
             buttonUser.setText(user.getName());
             buttonUser.setCallbackData(user.getId());

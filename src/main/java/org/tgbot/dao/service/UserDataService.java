@@ -1,6 +1,7 @@
 package org.tgbot.dao.service;
 
 import lombok.Setter;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.tgbot.dao.model.Chat;
 import org.tgbot.dao.model.ChatUser;
@@ -12,7 +13,7 @@ import java.util.Optional;
 @Setter
 @Service
 public class UserDataService {
-
+    @Autowired
     private UserMongoRepository userMongoRepository;
 
 
@@ -28,9 +29,9 @@ public class UserDataService {
         return user;
     }
 
-    public ChatUser getUserById(String id) {
+    public Optional<ChatUser> getUserById(String id) {
         Optional<ChatUser> ocu = userMongoRepository.findById(id);
-        return ocu.orElseThrow(NullPointerException::new);
+        return ocu;
     }
 
     public void delete(ChatUser user) {

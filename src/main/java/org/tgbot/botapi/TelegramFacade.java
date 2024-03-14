@@ -130,11 +130,6 @@ public class TelegramFacade {
         final long chatId = buttonQuery.getMessage().getChatId();
         final int messageId = buttonQuery.getMessage().getMessageId();
 
-        if (buttonQuery.getData() == null) {
-            emailAlertBot.editMessageReplyMarkup(chatId, messageId, new AssignCommandKeyboard());
-            return;
-        }
-
         boolean dataIsPullName = botConfig.getAssignPulls().stream().anyMatch(buttonQuery.getData()::equalsIgnoreCase);
         if (dataIsPullName) {
             List<ChatUser> chatUsers = chatDataService.findChatOrNew(chatId).getChatUsers();
@@ -143,12 +138,16 @@ public class TelegramFacade {
             return;
         }
 
-        ChatUser user = userDataService.getUserById(buttonQuery.getData());
-        if (user != null) {
-            emailAlertBot.editMessageReplyMarkup(chatId, messageId, new ShowAssignedUserKeyboard(user));
-            String messageText = messagesService.getReplyText("reply.messageAssigned", user.getName());
+        Optional<ChatUser> user = userDataService.getUserById(buttonQuery.getData());
+        if (user.isPresent()) {
+            emailAlertBot.editMessageReplyMarkup(chatId, messageId, new ShowAssignedUserKeyboard(user.get()));
+            String messageText = messagesService.getReplyText("reply.messageAssigned", user.get().getName());
             emailAlertBot.sendReplyMessage(chatId, messageText, messageId);
+
+        } else if ( ! buttonQuery.getData().equals("startState")) {
+            emailAlertBot.editMessageReplyMarkup(chatId, messageId, new AssignCommandKeyboard(botConfig.getAssignPulls()));
         }
+
 
     }
 
