@@ -88,6 +88,8 @@ public class EmailAlertBot extends TelegramLongPollingBot {
     public void sendMessageWithKeyboard(long chatId, String text, InlineKeyboardMarkup keyBoard)
             throws TelegramApiException {
         SendMessage sendMsg = new SendMessage();
+        text = text.strip();
+        text = text.length() > 4 ? text.trim() : "Empty body";
         sendMsg.setText(text);
         sendMsg.setChatId(chatId);
         sendMsg.setReplyMarkup(keyBoard);
@@ -96,6 +98,8 @@ public class EmailAlertBot extends TelegramLongPollingBot {
 
     public void sendMessageSilently(long chatId, String text) throws TelegramApiException {
         SendMessage sendMsg = new SendMessage();
+        text = text.strip();
+        text = text.length() > 4 ? text.trim() : "Empty body";
         sendMsg.setText(text);
         sendMsg.setChatId(chatId);
         sendMsg.setDisableNotification(true);
@@ -104,6 +108,8 @@ public class EmailAlertBot extends TelegramLongPollingBot {
 
     public void sendReplyMessage(long chatId, String text, int messageId) throws TelegramApiException {
         SendMessage sendMsg = new SendMessage();
+        text = text.strip();
+        text = text.length() > 4 ? text.trim() : "Empty body";
         sendMsg.setText(text);
         sendMsg.setChatId(chatId);
         sendMsg.setReplyToMessageId(messageId);
@@ -112,6 +118,8 @@ public class EmailAlertBot extends TelegramLongPollingBot {
 
     public void sendMessage(long chatId, String text) throws TelegramApiException {
         SendMessage sendMsg = new SendMessage();
+        text = text.strip();
+        text = text.length() > 4 ? text.trim() : "Empty body";
         sendMsg.setText(text);
         sendMsg.setChatId(chatId);
         execute(sendMsg);

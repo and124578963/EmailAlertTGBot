@@ -69,8 +69,13 @@ public class EmailAlertService {
                         sendFileAttachments(chat, mail);
                     } }
 
+                for (String path: mail.getAttachments()){
+                    new File (path).delete();
+                }
+
             }
             attemptToSend = 1;
+
         }catch (Exception e){
             log.info("Attempt number {} failed.", attemptToSend);
             e.printStackTrace();

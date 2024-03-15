@@ -10,6 +10,7 @@ if '__main__' == __name__:
     conf = Config()
     log = conf.get_common_logger()
     log.info("Start email module")
+
     freeze_support()
     list_proc = []
     for p_data in conf.profiles:

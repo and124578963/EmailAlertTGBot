@@ -11,6 +11,7 @@ buildNumber.properties
 ### Java template
 *.class
 
+.idea
 .env
 attachments/*
 # Mobile Tools for Java (J2ME)

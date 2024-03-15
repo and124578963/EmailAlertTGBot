@@ -73,8 +73,9 @@ public class ChatDataService {
                 userDataService.delete(u);
             }
         });
-
-        return users.removeIf(x -> x.getName().equalsIgnoreCase(name));
+        boolean isGood = users.removeIf(x -> x.getName().equalsIgnoreCase(name));
+        chat.setChatUsers(users);
+        return isGood;
     }
 
     public List<ChatUser> getChatUserByCommand(long chatId, String command){

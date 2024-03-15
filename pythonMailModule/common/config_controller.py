@@ -3,7 +3,7 @@ import sys
 from logging import Logger
 
 from dotenv import load_dotenv
-from yaml import load, Loader
+from pyaml_env import parse_config
 import logging.handlers
 
 from common.utils import Singleton
@@ -15,10 +15,8 @@ class Config(metaclass=Singleton):
     def __init__(self):
         load_dotenv(dotenv_path=self.get_abs_main_path(".env"), override=True)
 
-
-        with open(self.get_abs_main_path("./application.yaml"), "r", encoding="utf-8") as f:
-            self.data = load(f, Loader)
-            self.profiles: dict = self.data["profiles"]
+        self.data = parse_config(self.get_abs_main_path("./application.yaml"), encoding="utf-8")
+        self.profiles: dict = self.data["profiles"]
 
         self.attachment_path = self.data["attachments"]["path"]
         self._logging_init()
@@ -48,7 +46,7 @@ class Config(metaclass=Singleton):
 
     @staticmethod
     def get_common_logger() -> Logger:
-        return Config.get_logger("scheduler")
+        return Config.get_logger("mailModule")
 
     def _logging_init(self):
         # TODO: попробовать loguru

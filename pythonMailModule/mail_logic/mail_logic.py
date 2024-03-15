@@ -74,7 +74,7 @@ class MailFacade:
                                                folder=self.folder,
                                                mail_id=str(mail_id),
                                                force_to_image=self.profile.force_to_image,
-                                               last_row_of_letter=self.profile.last_row_of_letter
+                                               replacements=self.profile.replacements
                                                ).build()
 
             self.log.info(f"Тема письма {mail_data.subject}")
@@ -102,7 +102,9 @@ class MailFacade:
 
             MailBuilder.save_attachment(mail_data, store_path=self.attachments_path)
             if MailBuilder.is_html(mail_data):
-                MailBuilder.html_message_to_image(mail_data, store_path=self.attachments_path)
+                MailBuilder.html_message_to_image(mail_data, store_path=self.attachments_path,
+                                                  max_height=self.profile.max_height_px,
+                                                  max_width=self.profile.max_width_px)
 
             mails_conn = self.db_conn.table("mails")
             mail_db_data = mail_data.to_dict()

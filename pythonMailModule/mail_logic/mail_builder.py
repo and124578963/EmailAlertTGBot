@@ -9,14 +9,13 @@ from email import policy
 from email.header import decode_header
 from email.message import Message
 from sys import platform
-from typing import List, Optional, Union
+from typing import List, Optional, Union, Type
 
 import chardet
 import imgkit
 from PIL import Image
 
 from common.config_controller import Config
-
 
 @dataclass
 class MailData:
@@ -54,12 +53,12 @@ class MailData:
 
 class MailBuilder:
     def __init__(self, raw_mail: Message, folder: str, mail_id: str, force_to_image: bool = False,
-                 last_row_of_letter: str = ""):
+                 replacements: List[dict] = None):
         self.raw_data = raw_mail
         self.force_to_image = force_to_image
-        self.last_row_of_letter = last_row_of_letter
         self.folder = folder
         self.mail_id = mail_id
+        self.replacements = replacements or []
 
         self.log = Config.get_common_logger()
 
@@ -105,8 +104,9 @@ class MailBuilder:
             content = self._get_mail_body_like_plaint_text(self.raw_data)
 
         content = self._decode_bytes(content)
-        if self.last_row_of_letter:
-            content = self.__strip_text_email(content, self.last_row_of_letter)
+
+        content = self._base_replacements(content)
+        content = self.replace_re_substring(content, self.replacements)
         return content
 
     def _decode_bytes(self, content: Union[bytes, str]):
@@ -133,9 +133,14 @@ class MailBuilder:
 
     @staticmethod
     def _get_mail_body_like_html(mail_data: Message) -> bytes:
-        while mail_data.is_multipart():
-            mail_data = mail_data.get_payload(1)
-        return mail_data.get_payload(decode=True)
+        try:
+            while mail_data.is_multipart():
+                mail_data = mail_data.get_payload(1)
+            return mail_data.get_payload(decode=True)
+        except IndexError as e:
+            Config.get_common_logger().warning("Отключите force_image.")
+            return MailBuilder._get_mail_body_like_plaint_text(mail_data)
+
 
     def _get_mail_subject(self) -> str:
         email_data = self.raw_data
@@ -159,7 +164,7 @@ class MailBuilder:
         return ''.join(random.choice(letters) for i in range(length))
 
     @staticmethod
-    def __strip_text_email(body: str, last_row_of_letter: str) -> str:
+    def _base_replacements(body: str) -> str:
         mail_body = body
         mail_body = str(email.message_from_string(mail_body, policy=policy.default))
         new_list = []
@@ -171,13 +176,20 @@ class MailBuilder:
             if match_attach:
                 row = '[Вложение ' + str(count) + ']'
                 count += 1
-            match_end = re.search(last_row_of_letter, row)
-            if match_end or row.find('*From:*') != -1 or row.find('From: ') != -1:
+            if row.find('*From:*') != -1 or row.find('From: ') != -1:
                 break
             if row != '':
                 new_list.append(row)
         body = '\n'.join(new_list)
         return body
+
+    @staticmethod
+    def replace_re_substring(text: str, list_dict_pattern_substr: List[dict]):
+        for dict_pattern_substr in list_dict_pattern_substr:
+            pattern = dict_pattern_substr["pattern"]
+            substr = dict_pattern_substr["substr"]
+            text = re.sub(pattern, substr, text)
+        return text
 
     @classmethod
     def is_html(cls, data: MailData) -> bool:
@@ -185,25 +197,36 @@ class MailBuilder:
         return (text.find("<html") != -1 and text.find("</html>") != -1) or text.find("<br>") != -1
 
     @classmethod
-    def html_message_to_image(cls, data: MailData, store_path, max_height: int = 1200):
+    def html_message_to_image(cls, data: MailData, store_path, max_height: int = 1200, max_width: int = 600):
         text = data.body
         path = os.path.join(store_path, cls._random_word(10) + ".png")
         text = re.sub('<img[^>]*>', '', text)
         text = re.sub('<img>[^>]*</img>', '', text)
         text = text.replace('src="cid:', 'src="')
+        text = f"<html><style> html{{width: {max_width}px !important;}}</style>" + text + "</html>"
 
+        Config.get_common_logger().debug(f"HTML to image: {text}")
+        options = {
+            'width': max_width,
+            'encoding': 'UTF-8',
+            '--disable-smart-width': ""
+        }
         if platform == "win32":
             config = imgkit.config(wkhtmltoimage=r'C:\Program Files\wkhtmltopdf\bin\wkhtmltoimage.exe')
-            imgkit.from_string(text, path, config=config)
+
+            imgkit.from_string(text, path, config=config, options=options)
         else:
-            imgkit.from_string(text, path)
+            imgkit.from_string(text, path, options=options)
 
         input_image = Image.open(path)
+        _path = path
         image_width, image_height = input_image.size
 
         # Обрезание по высоте слишком длинных писем
+        _new = False
         if image_height > max_height:
             for y in range(0, image_height, max_height):
+                _new = True
                 upper = y
                 lower = y + max_height
                 # Crop the tile from the original image
@@ -218,6 +241,8 @@ class MailBuilder:
             data.attachments.insert(0, path)
 
         input_image.close()
+        if _new:
+            os.remove(_path)
 
         data.converted_to_image = True
         data.body = "Выгружено в изображение"
