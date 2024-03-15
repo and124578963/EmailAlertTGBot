@@ -59,6 +59,8 @@ public class ChatDataService {
     }
 
     public void addChatUser(long chatId, String command, String name){
+        name = name.strip();
+        command = command.strip();
         ChatUser user = userDataService.createUser(command, name);
         Chat chat = findChatOrNew(chatId);
         chat.getChatUsers().add(user);
@@ -75,6 +77,7 @@ public class ChatDataService {
         });
         boolean isGood = users.removeIf(x -> x.getName().equalsIgnoreCase(name));
         chat.setChatUsers(users);
+        chatMongoRepository.save(chat);
         return isGood;
     }
 
